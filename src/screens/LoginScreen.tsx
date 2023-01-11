@@ -27,7 +27,7 @@ export default function LoginScreen({ navigation }: Props) {
     });
 
     useEffect(() => {
-        if (useEffect.length === 0) return;
+        if (removeError.length === 0) return;
         Alert.alert('Login Incorrecto', errorMessage, [
             {
                 text: 'Ok',
