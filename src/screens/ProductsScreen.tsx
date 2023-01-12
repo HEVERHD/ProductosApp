@@ -5,12 +5,32 @@ import {
     StyleSheet,
     TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useContext } from 'react';
 import { ProductsContext } from '../context/ProductsContext';
+import { StackScreenProps } from '@react-navigation/stack';
+import { ProductsStackParams } from '../navigator/ProductsNavigator';
 
-export default function ProductsScreen() {
+interface Props
+    extends StackScreenProps<ProductsStackParams, 'ProductsScreen'> {}
+
+export default function ProductsScreen({ navigation }: Props) {
     const { products, cargarProducts } = useContext(ProductsContext);
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity
+                    style={{
+                        marginRight: 10,
+                    }}
+                    activeOpacity={0.8}
+                    onPress={() => navigation.navigate('ProductScreen', {})}>
+                    <Text>Agregar </Text>
+                </TouchableOpacity>
+            ),
+        });
+    }, []);
 
     //PULL TO REFRESH
 
@@ -24,7 +44,14 @@ export default function ProductsScreen() {
                 data={products}
                 keyExtractor={p => p._id}
                 renderItem={({ item }) => (
-                    <TouchableOpacity activeOpacity={0.8}>
+                    <TouchableOpacity
+                        onPress={() =>
+                            navigation.navigate('ProductScreen', {
+                                id: item._id,
+                                name: item.nombre,
+                            })
+                        }
+                        activeOpacity={0.8}>
                         <Text style={styles.productName}>{item.nombre}</Text>
                     </TouchableOpacity>
                 )}
