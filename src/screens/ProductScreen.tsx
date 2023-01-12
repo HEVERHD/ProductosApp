@@ -9,10 +9,11 @@ import {
 } from 'react-native';
 
 import { Picker } from '@react-native-picker/picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 import { StackScreenProps } from '@react-navigation/stack';
 import { ProductsStackParams } from '../navigator/ProductsNavigator';
-import { useState, useContext } from 'react';
+import { useContext, useState } from 'react';
 import useCategorias from '../hooks/useCategorias';
 import { useForm } from '../hooks/useForm';
 import { ProductsContext } from '../context/ProductsContext';
@@ -24,10 +25,16 @@ interface Props
 export default function ProductScreen({ navigation, route }: Props) {
     const { name = '', id = '' } = route.params;
 
+    const [tempUri, setTempUri] = useState<string>();
+
     const { categories } = useCategorias();
 
-    const { cargarProductsById, actualizarProducts, crearProducts } =
-        useContext(ProductsContext);
+    const {
+        cargarProductsById,
+        actualizarProducts,
+        crearProducts,
+        cargarImagen,
+    } = useContext(ProductsContext);
 
     const { _id, categoriaId, nombre, img, form, onChange, setFormValue } =
         useForm({
@@ -67,6 +74,25 @@ export default function ProductScreen({ navigation, route }: Props) {
             onChange(newProduct._id, '_id');
         }
     };
+
+    const tomarFotografia = () => {
+        launchCamera(
+            {
+                mediaType: 'photo',
+                quality: 0.5,
+            },
+            resp => {
+                if (resp.didCancel) return;
+                if (!resp.assets?.[0].uri) return;
+                setTempUri(resp.assets?.[0].uri);
+                cargarImagen(resp, _id);
+            },
+        );
+    };
+
+    // const abrirGaleria = () => {
+    //     launchImageLibrary();
+    // };
 
     return (
         <View style={styles.container}>
@@ -108,7 +134,7 @@ export default function ProductScreen({ navigation, route }: Props) {
                         }}>
                         <Button
                             title="Camara"
-                            onPress={() => {}}
+                            onPress={tomarFotografia}
                             color="#5856D6"
                         />
 
@@ -116,25 +142,34 @@ export default function ProductScreen({ navigation, route }: Props) {
 
                         <Button
                             title="Galeria"
-                            onPress={() => {}}
+                            // onPress={abrirGaleria}
                             color="#5856D6"
                         />
                     </View>
                 )}
 
-                {img.length > 0 && (
+                {img.length > 0 && !tempUri && (
                     <Image
                         source={{ uri: img }}
                         style={{
+                            marginTop: 20,
                             width: '100%',
                             height: 300,
-                            marginTop: 20,
-                            borderRadius: 50,
                         }}
                     />
                 )}
 
-                {/* MOSTRAR IMAGEN TEMPORAL */}
+                {/* TODO: Mostrar imagen temporal */}
+                {tempUri && (
+                    <Image
+                        source={{ uri: tempUri }}
+                        style={{
+                            marginTop: 20,
+                            width: '100%',
+                            height: 300,
+                        }}
+                    />
+                )}
             </ScrollView>
         </View>
     );
