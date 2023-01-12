@@ -5,7 +5,7 @@ import cafeApi from '../api/cafeApi';
 type ProductsContextProps = {
     products: Producto[];
     cargarProducts: () => Promise<void>;
-    agregarProducts: (categoryId: string, productName: string) => Promise<void>;
+    crearProducts: (categoryId: string, productName: string) => Promise<void>;
     actualizarProducts: (
         categoryId: string,
         productName: string,
@@ -32,15 +32,35 @@ export const ProductsProvider = ({ children }: any) => {
         // setProducts([...products, ...resp.data.productos]);
         setProducts([...resp.data.productos]);
     };
-    const agregarProducts = async (
+    const crearProducts = async (
         categoryId: string,
         productName: string,
-    ) => {};
+    ): Promise<Producto> => {
+        const resp = await cafeApi.post<Producto>('/productos', {
+            // mandar la data al backend
+            nombre: productName,
+            categoria: categoryId,
+        });
+        setProducts([...products, resp.data]);
+
+        return resp.data;
+    };
     const actualizarProducts = async (
         categoryId: string,
         productName: string,
         productId: string,
-    ) => {};
+    ) => {
+        const resp = await cafeApi.put<Producto>(`/productos/${productId}`, {
+            // mandar la data al backend
+            nombre: productName,
+            categoria: categoryId,
+        });
+        setProducts(
+            products.map(prod => {
+                return prod._id === productId ? resp.data : prod;
+            }),
+        );
+    };
     const borrarProducts = async (id: string) => {};
 
     const cargarProductsById = async (id: string): Promise<Producto> => {
@@ -54,7 +74,7 @@ export const ProductsProvider = ({ children }: any) => {
             value={{
                 products,
                 cargarProducts,
-                agregarProducts,
+                crearProducts,
                 actualizarProducts,
                 borrarProducts,
                 cargarProductsById,

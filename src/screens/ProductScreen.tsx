@@ -12,7 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 
 import { StackScreenProps } from '@react-navigation/stack';
 import { ProductsStackParams } from '../navigator/ProductsNavigator';
-import rect, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import useCategorias from '../hooks/useCategorias';
 import { useForm } from '../hooks/useForm';
 import { ProductsContext } from '../context/ProductsContext';
@@ -26,7 +26,8 @@ export default function ProductScreen({ navigation, route }: Props) {
 
     const { categories } = useCategorias();
 
-    const { cargarProductsById } = useContext(ProductsContext);
+    const { cargarProductsById, actualizarProducts, crearProducts } =
+        useContext(ProductsContext);
 
     const { _id, categoriaId, nombre, img, form, onChange, setFormValue } =
         useForm({
@@ -35,13 +36,12 @@ export default function ProductScreen({ navigation, route }: Props) {
             nombre: name,
             img: '',
         });
-    const [selectedLanguage, setSelectedLanguage] = useState();
 
     useEffect(() => {
         navigation.setOptions({
-            title: name ? name : 'Nuevo Producto',
+            title: nombre ? nombre : 'Buscar un Producto',
         });
-    }, []);
+    }, [nombre]);
 
     useEffect(() => {
         cargarProducto();
@@ -56,6 +56,16 @@ export default function ProductScreen({ navigation, route }: Props) {
             img: producto.img || '',
             nombre: producto.nombre,
         });
+    };
+
+    const saveOrUpdate = async () => {
+        if (id.length > 0) {
+            actualizarProducts(categoriaId, nombre, id);
+        } else {
+            const tempCategoriaId = categoriaId || categories[0]._id;
+            const newProduct = await crearProducts(tempCategoriaId, nombre);
+            onChange(newProduct._id, '_id');
+        }
     };
 
     return (
@@ -83,23 +93,35 @@ export default function ProductScreen({ navigation, route }: Props) {
                     ))}
                 </Picker>
 
-                <Button title="Guardar" onPress={() => {}} color="#5856D6" />
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        marginTop: 10,
-                    }}>
-                    <Button title="Camara" onPress={() => {}} color="#5856D6" />
+                <Button
+                    title="Guardar"
+                    onPress={saveOrUpdate}
+                    color="#5856D6"
+                />
 
-                    <View style={{ width: 20 }} />
+                {_id.length > 0 && (
+                    <View
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            marginTop: 10,
+                        }}>
+                        <Button
+                            title="Camara"
+                            onPress={() => {}}
+                            color="#5856D6"
+                        />
 
-                    <Button
-                        title="Galeria"
-                        onPress={() => {}}
-                        color="#5856D6"
-                    />
-                </View>
+                        <View style={{ width: 20 }} />
+
+                        <Button
+                            title="Galeria"
+                            onPress={() => {}}
+                            color="#5856D6"
+                        />
+                    </View>
+                )}
+
                 {img.length > 0 && (
                     <Image
                         source={{ uri: img }}
